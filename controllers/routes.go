@@ -15,15 +15,16 @@ var Logger = log.New(os.Stdout, " ", log.Ldate|log.Ltime|log.Lshortfile)
 func CreateRouter() http.Handler {
 	router := mux.NewRouter()
 
-	router = router.StrictSlash(true)
-	router.HandleFunc("/", Use(api.API)).Methods("GET")
-	router.HandleFunc("/newsletter", Use(api.Newsletter_Subscribe)).Methods("POST")
+	apiRouter := router.PathPrefix("/{apiPrefix}").Subrouter()
+	apiRouter = apiRouter.StrictSlash(true)
+	apiRouter.HandleFunc("/", Use(api.API)).Methods("GET")
+	apiRouter.HandleFunc("/newsletter", Use(api.Newsletter_Subscribe)).Methods("POST")
 
 	// Setup CSRF Protection
 	csrfHandler := nosurf.New(router)
 
 	// Exempt API routes and Static files
-	csrfHandler.ExemptGlob("/*")
+	csrfHandler.ExemptGlob("/*/newsletter")
 
 	return Use(csrfHandler.ServeHTTP, middleware.GetContext)
 }

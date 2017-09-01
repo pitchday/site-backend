@@ -1,4 +1,5 @@
 {
 	"apiUrl": "127.0.0.1:3000".
-	"dbConnectionString": "username:password@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True"
+	"dbConnectionString": "username:password@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True",
+	"apiPrefix": "api"
 }
