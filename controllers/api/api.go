@@ -11,5 +11,3 @@ func API(w http.ResponseWriter, r *http.Request) {
 	hello.Send(w, 200)
 	return
 }
-
-

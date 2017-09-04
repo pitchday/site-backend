@@ -1,12 +1,12 @@
 package models
 
 import (
+	"fmt"
 	"github.com/cheviz/pitchdayBackend/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"log"
 	"os"
-	"fmt"
 )
 
 var db *gorm.DB
@@ -24,11 +24,20 @@ func Setup() error {
 	db.LogMode(true)
 
 	db.AutoMigrate(&NewsletterSubscription{})
+	db.AutoMigrate(&Contributor{})
+
 	return err
 }
 
 func isDuplicatedDBError(err error) (isDuplicated bool) {
 	if fmt.Sprint(err)[:27] == "Error 1062: Duplicate entry" {
+		isDuplicated = true
+	}
+	return
+}
+
+func isNotFoundDBError(err error) (isDuplicated bool) {
+	if fmt.Sprint(err) == "record not found" {
 		isDuplicated = true
 	}
 	return

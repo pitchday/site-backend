@@ -1,12 +1,12 @@
 package api
 
 import (
-	"net/http"
-	"github.com/cheviz/pitchdayBackend/models"
 	"encoding/json"
+	"github.com/cheviz/pitchdayBackend/models"
+	"net/http"
 )
 
-//Check server health
+//Add given email to mailing list
 func Newsletter_Subscribe(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var ns models.NewsletterSubscription

@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	"github.com/badoux/checkmail"
+	"time"
 )
 
 type NewsletterSubscription struct {
@@ -10,6 +10,7 @@ type NewsletterSubscription struct {
 	Email     string `json:"email" gorm:"type:varchar(255);not null;unique"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
 }
 
 func (ns *NewsletterSubscription) Create() (err error, isDuplicated bool) {
