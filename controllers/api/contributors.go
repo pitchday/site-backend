@@ -26,7 +26,7 @@ func Get_Contributors(w http.ResponseWriter, r *http.Request) {
 	resp := models.Response{
 		Success: true,
 		Message: "Retrieved successfully",
-		Data: contributors,
+		Data:    contributors,
 	}
 	resp.Send(w, 200)
 	return

@@ -16,3 +16,6 @@
 /.idea/
 /config.json
 /pitchdayBackend
+
+.DS_Store
+

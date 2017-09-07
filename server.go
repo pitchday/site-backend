@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-var Logger = log.New(os.Stdout, " ", log.Ldate|log.Ltime|log.Lshortfile)
+var Logger = log.New(os.Stdout, "Info: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 func main() {
 	// Setup the global variables, settings, database, and cache stores

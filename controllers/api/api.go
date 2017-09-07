@@ -2,8 +2,12 @@ package api
 
 import (
 	"github.com/cheviz/pitchdayBackend/models"
+	"log"
 	"net/http"
+	"os"
 )
+
+var Logger = log.New(os.Stdout, " ", log.Ldate|log.Ltime|log.Lshortfile)
 
 //Check server health
 func API(w http.ResponseWriter, r *http.Request) {

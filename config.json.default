@@ -1,5 +1,10 @@
 {
 	"apiUrl": "127.0.0.1:3000".
 	"dbConnectionString": "username:password@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True",
-	"apiPrefix": "api"
+	"apiPrefix": "api",
+    "awsAccessKey": "AKIAI4HXWMBJMHICS77Q",
+    "awsSecretKey": "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",
+    "awsBucketName": "myBucket",
+	"telegramBotToken": "358245054:AHHYfIjdzBIPITKnL1UhFKHKySVX4GOACjX",
+	"communityTelegramGroupName": "PitchDay",
 }

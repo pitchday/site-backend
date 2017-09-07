@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/cheviz/pitchdayBackend/config"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"log"
@@ -10,6 +11,7 @@ import (
 )
 
 var db *gorm.DB
+var telegramBot *tgbotapi.BotAPI
 var Logger = log.New(os.Stdout, " ", log.Ldate|log.Ltime|log.Lshortfile)
 
 // Setup initializes the Conn object
@@ -25,6 +27,20 @@ func Setup() error {
 
 	db.AutoMigrate(&NewsletterSubscription{})
 	db.AutoMigrate(&Contributor{})
+	db.AutoMigrate(&UserIm{})
+
+	telegramBot, err = tgbotapi.NewBotAPI(config.Conf.TelegramBotToken)
+	if err != nil {
+		Logger.Println(err)
+		return err
+	}
+	telegramBot.Debug = true
+	log.Printf("Authorized on account %s", telegramBot.Self.UserName)
+
+	_, err = telegramBot.SetWebhook(tgbotapi.NewWebhook("https://483424c0.ngrok.io/api/bots/telegram/" + config.Conf.TelegramBotToken))
+	if err != nil {
+		Logger.Println(err)
+	}
 
 	return err
 }

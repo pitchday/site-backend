@@ -19,6 +19,8 @@ func CreateRouter() http.Handler {
 	apiRouter = apiRouter.StrictSlash(true)
 	apiRouter.HandleFunc("/", Use(api.API)).Methods("GET")
 
+	apiRouter.HandleFunc("/bots/{botType}/{botId}", Use(api.Bot_Hook)).Methods("POST")
+
 	apiRouter.HandleFunc("/contributors", Use(api.Get_Contributors)).Methods("GET")
 
 	apiRouter.HandleFunc("/newsletter", Use(api.Newsletter_Subscribe)).Methods("POST")
@@ -27,6 +29,7 @@ func CreateRouter() http.Handler {
 	csrfHandler := nosurf.New(router)
 
 	// Exempt API routes and Static files
+	csrfHandler.ExemptGlob("/*/bots/*/*")
 	csrfHandler.ExemptGlob("/*/newsletter")
 	csrfHandler.ExemptGlob("/*/contributors")
 	csrfHandler.ExemptGlob("/*/contributors/*")
