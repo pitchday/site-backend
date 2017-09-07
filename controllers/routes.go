@@ -20,6 +20,7 @@ func CreateRouter() http.Handler {
 	apiRouter.HandleFunc("/", Use(api.API)).Methods("GET")
 
 	apiRouter.HandleFunc("/bots/{botType}/{botId}", Use(api.Bot_Hook)).Methods("POST")
+	apiRouter.HandleFunc("/bots/userCounts", Use(api.Get_Group_Member_Count)).Methods("GET")
 
 	apiRouter.HandleFunc("/contributors", Use(api.Get_Contributors)).Methods("GET")
 

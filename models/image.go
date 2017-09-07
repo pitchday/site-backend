@@ -57,14 +57,7 @@ func putImageInBucket(imagePath string, userId string) (url string, err error) {
 	conf.WithCredentials(credentials)
 	conf.WithRegion("us-east-1")
 
-	//s3Session, err := session.NewSession(conf)
-	//if err != nil {
-	//	Logger.Println("There was an error creating the AWS session:", err)
-	//	return
-	//}
-
 	svc := session.Must(session.NewSession(conf))
-	//session.Must(s3.New(s3Session))
 
 	uploader := s3manager.NewUploader(svc)
 

@@ -6,5 +6,7 @@
     "awsSecretKey": "zfDkRMgs47RdYf0QkLtSL/nVMCnS/nrtsU+ju65H",
     "awsBucketName": "myBucket",
 	"telegramBotToken": "358245054:AHHYfIjdzBIPITKnL1UhFKHKySVX4GOACjX",
+	"telegramBotWebHook": "https://5d90e107.ngrok.io/api/bots/telegram/",
 	"communityTelegramGroupName": "PitchDay",
+	"communityTelegramGroupId": 0,
 }

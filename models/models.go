@@ -37,7 +37,7 @@ func Setup() error {
 	telegramBot.Debug = true
 	log.Printf("Authorized on account %s", telegramBot.Self.UserName)
 
-	_, err = telegramBot.SetWebhook(tgbotapi.NewWebhook("https://483424c0.ngrok.io/api/bots/telegram/" + config.Conf.TelegramBotToken))
+	_, err = telegramBot.SetWebhook(tgbotapi.NewWebhook(config.Conf.TelegramBotWebHook + config.Conf.TelegramBotToken))
 	if err != nil {
 		Logger.Println(err)
 	}

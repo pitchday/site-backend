@@ -14,9 +14,11 @@ type Config struct {
 	ApiPrefix                  string `json:"apiPrefix"`
 	AWSAccessKey               string `json:"awsAccessKey"`
 	AWSSecretKey               string `json:"awsSecretKey"`
+	TelegramBotWebHook         string `json:"telegramBotWebHook"`
 	AWSBucketName              string `json:"awsBucketName"`
 	TelegramBotToken           string `json:"telegramBotToken"`
 	CommunityTelegramGroupName string `json:"communityTelegramGroupName"`
+	CommunityTelegramGroupId   int64  `json:"communityTelegramGroupId"`
 }
 
 func init() {

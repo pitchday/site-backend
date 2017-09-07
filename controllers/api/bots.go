@@ -41,6 +41,34 @@ func Bot_Hook(w http.ResponseWriter, r *http.Request) {
 		Logger.Println("Got telegram request")
 		models.TelegramHandler(update, botId)
 	}
-
 	return
+}
+
+func Get_Group_Member_Count(w http.ResponseWriter, r *http.Request) {
+	telegramCount, err := models.GetMemberCountInChannel()
+	if err != nil {
+		Logger.Println(err)
+		resp := models.Response{
+			Success: false,
+			Debug:   "There was an error getting the telegram count",
+			Message: "Unable to get count",
+		}
+		resp.Send(w, 400)
+		return
+	}
+
+
+
+	counts := struct {
+		TelegramCount int `json:"telegramCount"`
+	}{
+		telegramCount,
+	}
+
+	resp := models.Response{
+		Success: true,
+		Message: "Received successfully",
+		Data: counts,
+	}
+	resp.Send(w, 200)
 }
