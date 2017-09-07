@@ -71,10 +71,10 @@ func putImageInBucket(imagePath string, userId string) (url string, err error) {
 	fileKey := fmt.Sprintf("contributors/%s.jpg", userId)
 
 	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(config.Conf.AWSBucketName),
+		Bucket:      aws.String(config.Conf.AWSBucketName),
 		ContentType: aws.String("image/jpeg"),
-		Key:    aws.String(fileKey),
-		Body:   f,
+		Key:         aws.String(fileKey),
+		Body:        f,
 	})
 	if err != nil {
 		err = fmt.Errorf("failed to upload file %q, %v", imagePath, err)

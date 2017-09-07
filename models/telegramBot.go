@@ -61,7 +61,7 @@ func telegramSuperGroupHandler(update tgbotapi.Update) {
 
 func GetMemberCountInChannel() (count int, err error) {
 	groupData := tgbotapi.ChatConfig{
-		ChatID: config.Conf.CommunityTelegramGroupId,
+		ChatID:             config.Conf.CommunityTelegramGroupId,
 		SuperGroupUsername: "",
 	}
 

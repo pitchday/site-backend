@@ -57,8 +57,6 @@ func Get_Group_Member_Count(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-
 	counts := struct {
 		TelegramCount int `json:"telegramCount"`
 	}{
@@ -68,7 +66,7 @@ func Get_Group_Member_Count(w http.ResponseWriter, r *http.Request) {
 	resp := models.Response{
 		Success: true,
 		Message: "Received successfully",
-		Data: counts,
+		Data:    counts,
 	}
 	resp.Send(w, 200)
 }
