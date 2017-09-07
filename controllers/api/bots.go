@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/cheviz/pitchdayBackend/models"
+	"github.com/pitchday/site-backend/models"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/gorilla/mux"
 	"net/http"

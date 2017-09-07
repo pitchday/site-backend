@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/cheviz/pitchdayBackend/controllers/api"
-	"github.com/cheviz/pitchdayBackend/middleware"
+	"github.com/pitchday/site-backend/controllers/api"
+	"github.com/pitchday/site-backend/middleware"
 	"github.com/gorilla/mux"
 	"github.com/justinas/nosurf"
 	"log"

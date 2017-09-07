@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/cheviz/pitchdayBackend/models"
+	"github.com/pitchday/site-backend/models"
 	"net/http"
 )
 

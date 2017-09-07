@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/cheviz/pitchdayBackend/models"
+	"github.com/pitchday/site-backend/models"
 	"log"
 	"net/http"
 	"os"

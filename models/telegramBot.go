@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/cheviz/pitchdayBackend/config"
+	"github.com/pitchday/site-backend/config"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 

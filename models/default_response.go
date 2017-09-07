@@ -3,7 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cheviz/pitchdayBackend/config"
+	"github.com/pitchday/site-backend/config"
 	"net/http"
 )
 

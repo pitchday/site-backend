@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cheviz/pitchdayBackend/models"
+	"github.com/pitchday/site-backend/models"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/cheviz/pitchdayBackend/config"
-	"github.com/cheviz/pitchdayBackend/controllers"
-	"github.com/cheviz/pitchdayBackend/models"
+	"github.com/pitchday/site-backend/config"
+	"github.com/pitchday/site-backend/controllers"
+	"github.com/pitchday/site-backend/models"
 	"github.com/gorilla/handlers"
 	"log"
 	"net/http"

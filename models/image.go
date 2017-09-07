@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/cheviz/pitchdayBackend/config"
+	"github.com/pitchday/site-backend/config"
 	"io"
 	"net/http"
 	"net/url"
