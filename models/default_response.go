@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cheviz/pitchdayBackend/config"
 	"net/http"
 )
 
@@ -24,6 +25,7 @@ func (r *Response) Send(w http.ResponseWriter, statusCode int) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", config.Conf.AccessControlAllowOrigin)
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, "%s", resp)
 	return

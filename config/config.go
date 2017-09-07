@@ -10,6 +10,7 @@ var Conf Config
 
 type Config struct {
 	ApiURL                     string `json:"apiUrl"`
+	AccessControlAllowOrigin   string `json:"AccessControlAllowOrigin"`
 	DBString                   string `json:"dbConnectionString"`
 	ApiPrefix                  string `json:"apiPrefix"`
 	AWSAccessKey               string `json:"awsAccessKey"`
