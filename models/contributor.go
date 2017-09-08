@@ -5,6 +5,7 @@ import (
 	"github.com/badoux/checkmail"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"time"
+	"github.com/satori/go.uuid"
 )
 
 type ContributorList []Contributor
@@ -16,6 +17,7 @@ type Contributor struct {
 	Email       string
 	Link        string
 	AvatarUrl   string
+	ReferralCode string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time `json:"-"`
@@ -34,6 +36,8 @@ func (c *Contributor) Get() (err error, isNotFound bool) {
 }
 
 func (c *Contributor) Create() (err error, isDuplicated bool) {
+	c.ReferralCode = uuid.NewV4().String()
+
 	err = db.Create(&c).Error
 	if err != nil && isDuplicatedDBError(err) {
 		isDuplicated = true
@@ -75,7 +79,8 @@ func MakeContributorFromTelegram(u tgbotapi.User) bool {
 	contributor := Contributor{
 		Name:        fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		AvatarUrl:   imageUrl,
-		Description: "Contributor",
+		ReferralCode: uuid.NewV4().String(),
+		Description: "Member",
 	}
 
 	err = tx.Create(&contributor).Error
@@ -121,6 +126,9 @@ func getUserAvatar(user tgbotapi.User) (imageUrl string, err error) {
 		return
 	}
 
+	if len(avatars.Photos) < 1 {
+		return
+	}
 	avatarUrl, err := telegramBot.GetFileDirectURL(avatars.Photos[0][1].FileID)
 	if err != nil {
 		Logger.Println("Error getting user avatar url,", err)
