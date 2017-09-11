@@ -9,17 +9,18 @@ import (
 var Conf Config
 
 type Config struct {
-	ApiURL                     string `json:"apiUrl"`
-	AccessControlAllowOrigin   string `json:"AccessControlAllowOrigin"`
-	DBString                   string `json:"dbConnectionString"`
-	ApiPrefix                  string `json:"apiPrefix"`
-	AWSAccessKey               string `json:"awsAccessKey"`
-	AWSSecretKey               string `json:"awsSecretKey"`
-	TelegramBotWebHook         string `json:"telegramBotWebHook"`
-	AWSBucketName              string `json:"awsBucketName"`
-	TelegramBotToken           string `json:"telegramBotToken"`
-	CommunityTelegramGroupName string `json:"communityTelegramGroupName"`
-	CommunityTelegramGroupId   int64  `json:"communityTelegramGroupId"`
+	ApiURL                         string `json:"apiUrl"`
+	AccessControlAllowOrigin       string `json:"accessControlAllowOrigin"`
+	DBString                       string `json:"dbConnectionString"`
+	ApiPrefix                      string `json:"apiPrefix"`
+	AWSAccessKey                   string `json:"awsAccessKey"`
+	AWSSecretKey                   string `json:"awsSecretKey"`
+	TelegramBotWebHook             string `json:"telegramBotWebHook"`
+	AWSBucketName                  string `json:"awsBucketName"`
+	TelegramBotToken               string `json:"telegramBotToken"`
+	CommunityTelegramGroupName     string `json:"communityTelegramGroupName"`
+	CommunityTelegramGroupId       int64  `json:"communityTelegramGroupId"`
+	AnnouncementsTelegramChannelId int64  `json:"announcementsTelegramChannelId"`
 }
 
 func init() {

@@ -1,6 +1,6 @@
 {
 	"apiUrl": "127.0.0.1:3000",
-	"AccessControlAllowOrigin": "http://localhost:8080",
+	"accessControlAllowOrigin": "http://localhost:8080",
 	"dbConnectionString": "username:password@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True",
 	"apiPrefix": "api",
     "awsAccessKey": "AKIAI4HXWMBJMHICS77Q",
@@ -10,4 +10,5 @@
 	"telegramBotWebHook": "https://5d90e107.ngrok.io/api/bots/telegram/",
 	"communityTelegramGroupName": "PitchDay",
 	"communityTelegramGroupId": 0,
+	"announcementsTelegramChannelId": 0
 }
