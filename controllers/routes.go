@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/pitchday/site-backend/controllers/api"
-	"github.com/pitchday/site-backend/middleware"
 	"github.com/gorilla/mux"
 	"github.com/justinas/nosurf"
+	"github.com/pitchday/site-backend/controllers/api"
+	"github.com/pitchday/site-backend/middleware"
 	"log"
 	"net/http"
 	"os"

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"net/http"
 	"github.com/pitchday/site-backend/models"
+	"net/http"
 )
 
 func Get_Announcements(w http.ResponseWriter, r *http.Request) {

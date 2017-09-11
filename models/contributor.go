@@ -4,23 +4,24 @@ import (
 	"fmt"
 	"github.com/badoux/checkmail"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"time"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 type ContributorList []Contributor
 
 type Contributor struct {
-	Id          int64 `json:"-"`
-	Name        string
-	Description string
-	Email       string
-	Link        string
-	AvatarUrl   string
+	Id           int64 `json:"-"`
+	Name         string
+	Description  string
+	Email        string
+	Link         string
+	AvatarUrl    string
 	ReferralCode string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time `json:"-"`
+	PrivateChat  int64 `json:"-"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time `json:"-"`
 }
 
 func (c *Contributor) Get() (err error, isNotFound bool) {
@@ -76,10 +77,10 @@ func MakeContributorFromTelegram(u tgbotapi.User) bool {
 	tx := db.Begin()
 
 	contributor := Contributor{
-		Name:        fmt.Sprintf("%s %s", u.FirstName, u.LastName),
-		AvatarUrl:   imageUrl,
+		Name:         fmt.Sprintf("%s %s", u.FirstName, u.LastName),
+		AvatarUrl:    imageUrl,
 		ReferralCode: uuid.NewV4().String(),
-		Description: "member",
+		Description:  "member",
 	}
 
 	err = tx.Create(&contributor).Error

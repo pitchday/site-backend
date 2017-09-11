@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pitchday/site-backend/models"
 	"github.com/gorilla/mux"
+	"github.com/pitchday/site-backend/models"
 	"net/http"
 	"strconv"
 )

@@ -1,13 +1,13 @@
 package models
 
 import (
-	"github.com/pitchday/site-backend/config"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"fmt"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/pitchday/site-backend/config"
 )
 
 func TelegramHandler(update tgbotapi.Update, botId string) {
-	switch  {
+	switch {
 	case update.Message != nil:
 		telegramHandleMessage(update)
 
