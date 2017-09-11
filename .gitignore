@@ -15,7 +15,7 @@
 /pitchday.iml
 /.idea/
 /config.json
-/pitchdayBackend
 
 .DS_Store
 
+/site-backend

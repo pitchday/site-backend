@@ -10,11 +10,8 @@ import (
 
 func Bot_Hook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	botType := vars["botType"]
 	botId := vars["botId"]
 
-	//decoder := json.NewDecoder(r.Body)
-	//var update models.NewsletterSubscription
 	decoder := json.NewDecoder(r.Body)
 	var update tgbotapi.Update
 
@@ -28,6 +25,7 @@ func Bot_Hook(w http.ResponseWriter, r *http.Request) {
 		}
 		resp.Send(w, 400)
 		return
+
 	}
 
 	resp := models.Response{
@@ -36,11 +34,9 @@ func Bot_Hook(w http.ResponseWriter, r *http.Request) {
 	}
 	resp.Send(w, 200)
 
-	switch botType {
-	case "telegram":
-		Logger.Println("Got telegram request")
+	go func() {
 		models.TelegramHandler(update, botId)
-	}
+	}()
 	return
 }
 

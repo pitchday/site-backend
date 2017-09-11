@@ -64,7 +64,6 @@ func (c *Contributor) Validate() (err error) {
 
 func (c *ContributorList) Get() (err error) {
 	err = db.Table("contributors").Find(&c).Error
-
 	return
 }
 
@@ -80,7 +79,7 @@ func MakeContributorFromTelegram(u tgbotapi.User) bool {
 		Name:        fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		AvatarUrl:   imageUrl,
 		ReferralCode: uuid.NewV4().String(),
-		Description: "Member",
+		Description: "member",
 	}
 
 	err = tx.Create(&contributor).Error

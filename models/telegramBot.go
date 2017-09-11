@@ -3,11 +3,80 @@ package models
 import (
 	"github.com/pitchday/site-backend/config"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"fmt"
 )
 
 func TelegramHandler(update tgbotapi.Update, botId string) {
-	Logger.Println("Got request from bot", botId)
+	switch  {
+	case update.Message != nil:
+		telegramHandleMessage(update)
 
+	case update.ChannelPost != nil, update.EditedChannelPost != nil:
+		telegramHandleChannel(update)
+	}
+
+	return
+}
+
+func telegramHandleChannel(update tgbotapi.Update) {
+	var message *tgbotapi.Message
+	var isEdit bool
+
+	switch {
+	case update.ChannelPost != nil:
+		message = update.ChannelPost
+	case update.EditedChannelPost != nil:
+		message = update.EditedChannelPost
+		isEdit = true
+	default:
+		return
+	}
+
+	Logger.Println("GOT MESSAGE:", message, isEdit)
+
+	if message.Chat.ID != config.Conf.AnnouncementsTelegramChannelId {
+		Logger.Println("Received message from unknown channel. The given Id is:", message.Chat.ID)
+		return
+	}
+
+	announcement := Announcement{
+		MessageId: message.MessageID,
+		ChannelId: message.Chat.ID,
+	}
+
+	switch {
+	default:
+		return
+	case message.Photo != nil:
+		images := *message.Photo
+
+		url, err := telegramBot.GetFileDirectURL(images[2].FileID)
+		if err != nil {
+			Logger.Printf("On announcement got %s while requesting image link", fmt.Sprint(err))
+		}
+		announcement.ResourceType = "img"
+		announcement.Resource = url
+		fallthrough
+	case message.Text != "":
+		announcement.Body = message.Text
+	}
+
+	if isEdit {
+		err := announcement.Edit()
+		if err != nil {
+			Logger.Println("Got an error while updating announcement, the error is", err)
+		}
+	} else {
+		err := announcement.Create()
+		if err != nil {
+			Logger.Println("Got an error while storing announcement, the error is", err)
+		}
+	}
+
+	return
+}
+
+func telegramHandleMessage(update tgbotapi.Update) {
 	switch {
 	case update.Message.Chat.IsPrivate():
 		telegramPrivateHandler(update)
@@ -38,6 +107,7 @@ func handleTelegramCommand(command string) (err error) {
 func telegramSuperGroupHandler(update tgbotapi.Update) {
 	if update.Message.Chat.ID != config.Conf.CommunityTelegramGroupId {
 		Logger.Println("Received message from unknown group. The given Id is:", update.Message.Chat.ID)
+		return
 	}
 
 	if update.Message != nil {
