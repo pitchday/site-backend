@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"github.com/badoux/checkmail"
+	"github.com/go-sql-driver/mysql"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/satori/go.uuid"
 	"time"
@@ -11,17 +11,16 @@ import (
 type ContributorList []Contributor
 
 type Contributor struct {
-	Id           int64 `json:"-"`
+	Id           int64
 	Name         string
 	Description  string
-	Email        string
 	Link         string
 	AvatarUrl    string
 	ReferralCode string
-	PrivateChat  int64 `json:"-"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-	DeletedAt    *time.Time `json:"-"`
+	DeletedAt    mysql.NullTime `json:"-"`
+	ReferredBy   int64          `json:"-"`
 }
 
 func (c *Contributor) Get() (err error, isNotFound bool) {
@@ -30,8 +29,23 @@ func (c *Contributor) Get() (err error, isNotFound bool) {
 		isNotFound = true
 	}
 
-	//Hide personal information
-	c.Email = ""
+	return
+}
+
+func (c *Contributor) GetByServiceId(serviceId string) (err error, isNotFound bool) {
+	err = db.Raw("SELECT * FROM contributors WHERE id = (SELECT contributor_id FROM user_ims WHERE service_id = ?)", serviceId).Scan(&c).Error
+	if err != nil && isNotFoundDBError(err) {
+		isNotFound = true
+	}
+
+	return
+}
+
+func (c *Contributor) GetByReferralCode(referralCode string) (err error, isNotFound bool) {
+	err = db.Raw("SELECT * FROM contributors WHERE referral_code = ?", referralCode).Scan(&c).Error
+	if err != nil && isNotFoundDBError(err) {
+		isNotFound = true
+	}
 
 	return
 }
@@ -56,22 +70,24 @@ func DeleteContributorUsingTelegramId(id int) (err error) {
 	return
 }
 
-func (c *Contributor) Validate() (err error) {
-	if len(c.Email) > 1 {
-		err = checkmail.ValidateFormat(c.Email)
-	}
-	return
-}
-
 func (c *ContributorList) Get() (err error) {
 	err = db.Table("contributors").Find(&c).Error
 	return
 }
 
-func MakeContributorFromTelegram(u tgbotapi.User) bool {
+func MakeContributorFromTelegram(u tgbotapi.User, isMember bool, referredByCode string, privateChatId int64) bool {
 	imageUrl, err := getUserAvatar(u)
 	if err != nil {
 		return false
+	}
+
+	referrer := Contributor{}
+
+	if len(referredByCode) > 1 {
+		err, isNotFound := referrer.GetByReferralCode(referredByCode)
+		if err != nil && !isNotFound {
+			Logger.Println("There was an error registering user with referral code", referredByCode)
+		}
 	}
 
 	tx := db.Begin()
@@ -81,6 +97,11 @@ func MakeContributorFromTelegram(u tgbotapi.User) bool {
 		AvatarUrl:    imageUrl,
 		ReferralCode: uuid.NewV4().String(),
 		Description:  "member",
+		ReferredBy:   referrer.Id,
+	}
+
+	if !isMember {
+		contributor.DeletedAt.Scan(time.Now())
 	}
 
 	err = tx.Create(&contributor).Error
@@ -94,11 +115,15 @@ func MakeContributorFromTelegram(u tgbotapi.User) bool {
 		ServiceId:     fmt.Sprint(u.ID),
 		Provider:      "Telegram",
 	}
+
+	if privateChatId != 0 {
+		contributorIm.PrivateChat = privateChatId
+	}
+
 	err = tx.Create(&contributorIm).Error
 	if err != nil {
-		if isDuplicatedDBError(err) {
+		if isDuplicatedDBError(err) && isMember {
 			tx.Rollback()
-
 			err = db.Exec("UPDATE contributors SET deleted_at = NULL WHERE id IN (SELECT contributor_id FROM user_ims WHERE service_id = ?);", u.ID).Error
 			if err != nil {
 				return false
@@ -129,6 +154,7 @@ func getUserAvatar(user tgbotapi.User) (imageUrl string, err error) {
 	if len(avatars.Photos) < 1 {
 		return
 	}
+
 	avatarUrl, err := telegramBot.GetFileDirectURL(avatars.Photos[0][1].FileID)
 	if err != nil {
 		Logger.Println("Error getting user avatar url,", err)

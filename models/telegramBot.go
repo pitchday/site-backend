@@ -32,8 +32,6 @@ func telegramHandleChannel(update tgbotapi.Update) {
 		return
 	}
 
-	Logger.Println("GOT MESSAGE:", message, isEdit)
-
 	if message.Chat.ID != config.Conf.AnnouncementsTelegramChannelId {
 		Logger.Println("Received message from unknown channel. The given Id is:", message.Chat.ID)
 		return
@@ -47,6 +45,7 @@ func telegramHandleChannel(update tgbotapi.Update) {
 	switch {
 	default:
 		return
+
 	case message.Photo != nil:
 		images := *message.Photo
 
@@ -57,6 +56,7 @@ func telegramHandleChannel(update tgbotapi.Update) {
 		announcement.ResourceType = "img"
 		announcement.Resource = url
 		fallthrough
+
 	case message.Text != "":
 		announcement.Body = message.Text
 	}
@@ -66,6 +66,7 @@ func telegramHandleChannel(update tgbotapi.Update) {
 		if err != nil {
 			Logger.Println("Got an error while updating announcement, the error is", err)
 		}
+
 	} else {
 		err := announcement.Create()
 		if err != nil {
@@ -82,6 +83,7 @@ func telegramHandleMessage(update tgbotapi.Update) {
 		telegramPrivateHandler(update)
 
 	case update.Message.Chat.IsGroup():
+		return
 
 	case update.Message.Chat.IsSuperGroup():
 		telegramSuperGroupHandler(update)
@@ -90,15 +92,35 @@ func telegramHandleMessage(update tgbotapi.Update) {
 
 func telegramPrivateHandler(update tgbotapi.Update) {
 	if update.Message.IsCommand() {
-		handleTelegramCommand(update.Message.Command())
+		handleTelegramCommand(update)
 	}
 
 }
 
-func handleTelegramCommand(command string) (err error) {
-	switch command {
+func handleTelegramCommand(update tgbotapi.Update) (err error) {
+	switch update.Message.Command() {
 	case "start":
-		Logger.Println("User registered")
+		go func(){
+			user := *update.Message.From
+			MakeContributorFromTelegram(user, false, update.Message.CommandArguments(), update.Message.Chat.ID)
+		}()
+		sendMessate(update.Message.Chat.ID, "WELCOME please join https://t.me/joinchat/CIYV7EMVhacy2y4KKbRveA\n You can always ask for /help")
+
+	case "help":
+
+	case "refer":
+		contributor := Contributor{}
+		err, isNotFound := contributor.GetByServiceId(fmt.Sprint(update.Message.From.ID))
+		if err != nil {
+			if isNotFound {
+
+			}
+			sendMessate(update.Message.Chat.ID,  "It seems there was a problem retrieving your referral code. If you have seen this message before please report on the community channel")
+			return
+		}
+
+		sendMessate(update.Message.Chat.ID, fmt.Sprintf("Your referral code is: %s You can also share this link with your friend.", contributor.ReferralCode))
+		sendMessate(update.Message.Chat.ID, fmt.Sprintf("https://t.me/PitcherBot?start=%s", contributor.ReferralCode))
 	}
 
 	return
@@ -110,17 +132,21 @@ func telegramSuperGroupHandler(update tgbotapi.Update) {
 		return
 	}
 
+	Logger.Println("Received message on group.")
+
 	if update.Message != nil {
-		if update.Message.NewChatMembers != nil && update.Message.Chat.Title == config.Conf.CommunityTelegramGroupName {
+		if update.Message.NewChatMembers != nil && update.Message.Chat.ID == config.Conf.CommunityTelegramGroupId {
+			Logger.Println("New user on group.")
+
 			var users []tgbotapi.User
 			users = *update.Message.NewChatMembers
 
 			for _, user := range users {
-				MakeContributorFromTelegram(user)
+				MakeContributorFromTelegram(user, true, "", 0)
 			}
 		}
 
-		if update.Message.LeftChatMember != nil && update.Message.Chat.Title == config.Conf.CommunityTelegramGroupName {
+		if update.Message.LeftChatMember != nil && update.Message.Chat.ID == config.Conf.CommunityTelegramGroupId {
 			err := DeleteContributorUsingTelegramId(update.Message.LeftChatMember.ID)
 			if err != nil {
 				Logger.Println("Got error:", err)
@@ -137,5 +163,15 @@ func GetMemberCountInChannel() (count int, err error) {
 
 	count, err = telegramBot.GetChatMembersCount(groupData)
 	count = count - 1
+	return
+}
+
+func sendMessate(chatId int64, message string) (){
+	msg := tgbotapi.NewMessage(chatId, message)
+
+	_, err := telegramBot.Send(msg)
+	if err != nil {
+		Logger.Println("Got error while sending message")
+	}
 	return
 }
