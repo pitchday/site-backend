@@ -16,7 +16,9 @@ type Contributor struct {
 	Description  string
 	Link         string
 	AvatarUrl    string
-	ReferralCode string
+	ServiceId    int `gorm:"unique"`
+	PrivateChat  int64
+	ReferralCode string `gorm:"unique"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    mysql.NullTime `json:"-"`
@@ -32,31 +34,19 @@ func (c *Contributor) Get() (err error, isNotFound bool) {
 	return
 }
 
-func (c *Contributor) GetByServiceId(serviceId string) (err error, isNotFound bool) {
-	err = db.Raw("SELECT * FROM contributors WHERE id = (SELECT contributor_id FROM user_ims WHERE service_id = ?)", serviceId).Scan(&c).Error
-	if err != nil && isNotFoundDBError(err) {
-		isNotFound = true
-	}
-
+func (c *Contributor) GetByServiceId(serviceId string) (err error) {
+	err = db.Raw("SELECT * FROM contributors WHERE service_id = ?;", serviceId).Scan(&c).Error
 	return
 }
 
-func (c *Contributor) GetByReferralCode(referralCode string) (err error, isNotFound bool) {
-	err = db.Raw("SELECT * FROM contributors WHERE referral_code = ?", referralCode).Scan(&c).Error
-	if err != nil && isNotFoundDBError(err) {
-		isNotFound = true
-	}
-
+func (c *Contributor) GetByReferralCode(referralCode string) (err error) {
+	err = db.Raw("SELECT * FROM contributors WHERE referral_code = ?;", referralCode).Scan(&c).Error
 	return
 }
 
-func (c *Contributor) Create() (err error, isDuplicated bool) {
+func (c *Contributor) Create() (err error) {
 	c.ReferralCode = uuid.NewV4().String()
-
 	err = db.Create(&c).Error
-	if err != nil && isDuplicatedDBError(err) {
-		isDuplicated = true
-	}
 	return
 }
 
@@ -66,7 +56,7 @@ func (c *Contributor) Delete() (err error) {
 }
 
 func DeleteContributorUsingTelegramId(id int) (err error) {
-	err = db.Exec("UPDATE contributors SET deleted_at = NOW() WHERE id IN (SELECT contributor_id FROM user_ims WHERE service_id = ?);", id).Error
+	err = db.Exec("UPDATE contributors SET deleted_at = NOW() WHERE service_id = ?;", id).Error
 	return
 }
 
@@ -75,67 +65,43 @@ func (c *ContributorList) Get() (err error) {
 	return
 }
 
-func MakeContributorFromTelegram(u tgbotapi.User, isMember bool, referredByCode string, privateChatId int64) bool {
+func (c *Contributor) MakeMember() (err error) {
+	c.DeletedAt.Valid = false
+	err = db.Exec("UPDATE contributors SET deleted_at = null WHERE service_id = ?;", c.ServiceId).Error
+	return
+}
+
+func MakeContributorFromTelegram(u tgbotapi.User, isMember bool, referredByCode string, privateChat int64) bool {
 	imageUrl, err := getUserAvatar(u)
 	if err != nil {
 		return false
 	}
 
 	referrer := Contributor{}
-
 	if len(referredByCode) > 1 {
-		err, isNotFound := referrer.GetByReferralCode(referredByCode)
-		if err != nil && !isNotFound {
+		err := referrer.GetByReferralCode(referredByCode)
+		if err != nil && !isNotFoundDBError(err) {
 			Logger.Println("There was an error registering user with referral code", referredByCode)
 		}
 	}
 
-	tx := db.Begin()
-
 	contributor := Contributor{
-		Name:         fmt.Sprintf("%s %s", u.FirstName, u.LastName),
-		AvatarUrl:    imageUrl,
-		ReferralCode: uuid.NewV4().String(),
-		Description:  "member",
-		ReferredBy:   referrer.Id,
+		Name:        fmt.Sprintf("%s %s", u.FirstName, u.LastName),
+		AvatarUrl:   imageUrl,
+		Description: "member",
+		ServiceId:   u.ID,
+		ReferredBy:  referrer.Id,
+		PrivateChat: privateChat,
 	}
 
 	if !isMember {
 		contributor.DeletedAt.Scan(time.Now())
 	}
 
-	err = tx.Create(&contributor).Error
+	err = contributor.Create()
 	if err != nil {
-		tx.Rollback()
 		return false
 	}
-
-	contributorIm := UserIm{
-		ContributorId: contributor.Id,
-		ServiceId:     fmt.Sprint(u.ID),
-		Provider:      "Telegram",
-	}
-
-	if privateChatId != 0 {
-		contributorIm.PrivateChat = privateChatId
-	}
-
-	err = tx.Create(&contributorIm).Error
-	if err != nil {
-		if isDuplicatedDBError(err) && isMember {
-			tx.Rollback()
-			err = db.Exec("UPDATE contributors SET deleted_at = NULL WHERE id IN (SELECT contributor_id FROM user_ims WHERE service_id = ?);", u.ID).Error
-			if err != nil {
-				return false
-			}
-			return true
-		}
-
-		tx.Rollback()
-		return false
-	}
-
-	tx.Commit()
 	return true
 }
 

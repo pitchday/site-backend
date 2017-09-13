@@ -48,17 +48,8 @@ func Add_Contributor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err, isDuplicated := c.Create()
+	err = c.Create()
 	if err != nil {
-		if isDuplicated {
-			resp := models.Response{
-				Success: false,
-				Debug:   "Email already registered",
-				Message: "Unable to add contributor",
-			}
-			resp.Send(w, 409)
-			return
-		}
 		resp := models.Response{
 			Success: false,
 			Debug:   "If this error persists please submit a bug report",

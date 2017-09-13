@@ -13,6 +13,9 @@ func TelegramHandler(update tgbotapi.Update, botId string) {
 
 	case update.ChannelPost != nil, update.EditedChannelPost != nil:
 		telegramHandleChannel(update)
+
+	case update.CallbackQuery != nil:
+		handleTelegramQuery(update)
 	}
 
 	return
@@ -25,9 +28,11 @@ func telegramHandleChannel(update tgbotapi.Update) {
 	switch {
 	case update.ChannelPost != nil:
 		message = update.ChannelPost
+
 	case update.EditedChannelPost != nil:
 		message = update.EditedChannelPost
 		isEdit = true
+
 	default:
 		return
 	}
@@ -91,10 +96,10 @@ func telegramHandleMessage(update tgbotapi.Update) {
 }
 
 func telegramPrivateHandler(update tgbotapi.Update) {
-	if update.Message.IsCommand() {
+	switch {
+	case update.Message.IsCommand():
 		handleTelegramCommand(update)
 	}
-
 }
 
 func handleTelegramCommand(update tgbotapi.Update) (err error) {
@@ -104,25 +109,71 @@ func handleTelegramCommand(update tgbotapi.Update) (err error) {
 			user := *update.Message.From
 			MakeContributorFromTelegram(user, false, update.Message.CommandArguments(), update.Message.Chat.ID)
 		}()
-		sendMessate(update.Message.Chat.ID, "WELCOME please join https://t.me/joinchat/CIYV7EMVhacy2y4KKbRveA\n You can always ask for /help")
+		markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonURL(config.Conf.BotMessages["joinCommunityLabel"], config.Conf.CommunityTelegramGroupLink)})
+		sendMessage(update.Message.Chat.ID, config.Conf.BotMessages["start"], markup)
+
 
 	case "help":
 
 	case "refer":
 		contributor := Contributor{}
-		err, isNotFound := contributor.GetByServiceId(fmt.Sprint(update.Message.From.ID))
+		err = contributor.GetByServiceId(fmt.Sprint(update.Message.From.ID))
 		if err != nil {
-			if isNotFound {
-
-			}
-			sendMessate(update.Message.Chat.ID,  "It seems there was a problem retrieving your referral code. If you have seen this message before please report on the community channel")
+			sendMessage(update.Message.Chat.ID,  "It seems there was a problem retrieving your referral code. If you have seen this message before please report on the community channel", nil)
+			//TODO notify admins
 			return
 		}
-
-		sendMessate(update.Message.Chat.ID, fmt.Sprintf("Your referral code is: %s You can also share this link with your friend.", contributor.ReferralCode))
-		sendMessate(update.Message.Chat.ID, fmt.Sprintf("https://t.me/PitcherBot?start=%s", contributor.ReferralCode))
+		sendMessage(update.Message.Chat.ID, fmt.Sprintf("Your referral code is: %s You can also share this link with your friend.", contributor.ReferralCode), nil)
+		sendMessage(update.Message.Chat.ID, fmt.Sprintf("https://t.me/PitcherBot?start=%s", contributor.ReferralCode), nil)
 	}
 
+	return
+}
+
+func handleTelegramQuery(update tgbotapi.Update) {
+	markup := tgbotapi.InlineKeyboardMarkup{}
+	msg := ""
+
+	switch update.CallbackQuery.Data {
+	default:
+		//MAIN MENU
+		msg = config.Conf.BotMessages["welcomeToCommunity"]
+		buttons := []tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["earnTokensLabel"], "earnTokens"),
+		}
+		markup = tgbotapi.NewInlineKeyboardMarkup(buttons)
+
+	case "earnTokens":
+		msg = config.Conf.BotMessages["earnTokensMessage"]
+
+		markup.InlineKeyboard = [][]tgbotapi.InlineKeyboardButton{
+			[]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["bringNewMembersLabel"], "members")},
+			[]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["joinBountyLabel"], "bounty")},
+			[]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["joinDesignLabel"], "design")},
+			[]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["joinEngineeringLabel"], "engineering")},
+			[]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["beAdvisorLabel"], "advise")},
+			[]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("Back", "")},
+		}
+
+	case "members":
+		msg = config.Conf.BotMessages["bringNewMembersMessage"]
+		buttons := []tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("Back", "earnTokens"),
+		}
+		markup = tgbotapi.NewInlineKeyboardMarkup(buttons)
+
+
+	case "bounty":
+		msg = config.Conf.BotMessages["bringNewMembersMessage"]
+		buttons := []tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("Back", "earnTokens"),
+		}
+		markup = tgbotapi.NewInlineKeyboardMarkup(buttons)
+	}
+	Logger.Println("GOT MESSAGE FROM:", update.CallbackQuery.From.ID, "IN CHAT", update.CallbackQuery.Message.Chat.ID, "MessageId is", update.CallbackQuery.Message.MessageID, "DATA IS", update.CallbackQuery.Data)
+
+	updateMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, msg)
+	updateKeyboard(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, markup)
 	return
 }
 
@@ -132,25 +183,45 @@ func telegramSuperGroupHandler(update tgbotapi.Update) {
 		return
 	}
 
-	Logger.Println("Received message on group.")
+	if update.Message == nil{
+		return
+	}
 
-	if update.Message != nil {
-		if update.Message.NewChatMembers != nil && update.Message.Chat.ID == config.Conf.CommunityTelegramGroupId {
-			Logger.Println("New user on group.")
+	switch {
+	case update.Message.NewChatMembers != nil:
+		var users []tgbotapi.User
+		users = *update.Message.NewChatMembers
+		for _, user := range users {
+			contributor := Contributor{}
+			err := contributor.GetByServiceId(fmt.Sprint(user.ID))
+			if err != nil {
+				if isNotFoundDBError(err) {
+					// Register user as community member
+					MakeContributorFromTelegram(user, true, "", 0)
+				} else {
+					//	TODO notify admins
+				}
+			}
 
-			var users []tgbotapi.User
-			users = *update.Message.NewChatMembers
+			if contributor.DeletedAt.Valid {
+				err = contributor.MakeMember()
+				if err != nil {
+					//	TODO notify admins
+				}
 
-			for _, user := range users {
-				MakeContributorFromTelegram(user, true, "", 0)
+				if contributor.PrivateChat != 0 {
+				//	TODO send message on private chat
+					markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["earnTokensLabel"], "earnTokens")})
+					sendMessage(contributor.PrivateChat, config.Conf.BotMessages["welcomeToCommunity"], markup)
+				}
+				return
 			}
 		}
-
-		if update.Message.LeftChatMember != nil && update.Message.Chat.ID == config.Conf.CommunityTelegramGroupId {
-			err := DeleteContributorUsingTelegramId(update.Message.LeftChatMember.ID)
-			if err != nil {
-				Logger.Println("Got error:", err)
-			}
+	case update.Message.LeftChatMember != nil:
+		err := DeleteContributorUsingTelegramId(update.Message.LeftChatMember.ID)
+		if err != nil {
+			Logger.Println("Got error:", err)
+			//	TODO notify admins
 		}
 	}
 }
@@ -166,12 +237,37 @@ func GetMemberCountInChannel() (count int, err error) {
 	return
 }
 
-func sendMessate(chatId int64, message string) (){
+func sendMessage(chatId int64, message string, markup interface{}) (){
 	msg := tgbotapi.NewMessage(chatId, message)
+	msg.DisableWebPagePreview = true
+
+	if markup != nil {
+		msg.ReplyMarkup = markup
+	}
 
 	_, err := telegramBot.Send(msg)
 	if err != nil {
-		Logger.Println("Got error while sending message")
+		Logger.Println("Got error while sending message", err)
+	}
+	return
+}
+
+func updateMessage(chatId int64, messageId int, message string) (){
+	msg := tgbotapi.NewEditMessageText(chatId, messageId, message)
+
+	_, err := telegramBot.Send(msg)
+	if err != nil {
+		Logger.Println("Got error while sending message", err)
+	}
+	return
+}
+
+func updateKeyboard(chatId int64, messageId int, markup tgbotapi.InlineKeyboardMarkup) (){
+	msg := tgbotapi.NewEditMessageReplyMarkup(chatId, messageId, markup)
+
+	_, err := telegramBot.Send(msg)
+	if err != nil {
+		Logger.Println("Got error while sending message", err)
 	}
 	return
 }
