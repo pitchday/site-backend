@@ -50,6 +50,11 @@ func (c *Contributor) Create() (err error) {
 	return
 }
 
+func (c *Contributor) Update() (err error) {
+	err = db.Table("contributors").Save(&c).Error
+	return
+}
+
 func (c *Contributor) Delete() (err error) {
 	err = db.Delete(&c).Error
 	return

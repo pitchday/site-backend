@@ -13,6 +13,22 @@
 	"communityTelegramGroupLink": "https://t.me/botTestingForPitch",
 	"announcementsTelegramChannelId": 0,
     "botMessages": {
-        "start": "Great!\n\nAt Pitchday we envision a highly collaborative and inclusive platform where individuals and organisations can collaborate and bring to life innovative projects in a democratic, transparent, boarder-less and equal way.\n\nReady to become a member? Join now: t.me/pitchday"
-    }
+        "start": "Great!\n\nAt Pitchday we envision a highly collaborative and inclusive platform where individuals and organisations can collaborate and bring to life innovative projects in a democratic, transparent, boarder-less and equal way.\n\nReady to become a member? Join now: %s",
+        "joinCommunityLabel": "Join now",
+        "welcomeToCommunity": "Welcome to the Pitchday community - glad to see you made it.\n\nDiscover more about the community and our vision in our White Paper: https://github.com/pitchday/white-paper.\n\nAsk questions and participate in discussion t.me/pitchday\n\nAs part of the community you can earn tokens by contributing or buying tokens.",
+        "earnTokensLabel": "Earn tokens",
+        "buyTokensLabel": "Buy tokens",
+        "earnTokensMessage": "Choose how to earn tokens:",
+        "bringNewMembersLabel": "Bring new members",
+        "joinBountyLabel": "Join bounty program",
+        "joinDesignLabel": "Join design team",
+        "joinEngineeringLabel": "Join engineering team",
+        "beAdvisorLabel": "Become an advisor",
+        "bringNewMembersMessage": "Don’t miss this opportunity to get PTDs and great bonuses! This is your unique referral link:\n\npitchday.io/?start=%s\n\nShare it with your network and get:\n- 50 PDT for each new vetted member\n- 5%% of PDT purchased by referred member",
+        "bringNewMembersUrl": "https://docs.google.com/document/d/1A6qNWbai6Sp0HDGyrhPOcxT_BaSQgH6jazB6maKj2e0/edit?usp=sharing",
+        "beAdvisorMessage": "Contact us directly in our community chat %s\nWe are excited to hear from you!",
+        "bountyPage": "https://docs.google.com/document/d/1kxFZBdOccDfTmtCSzr1xnM13Gsfcp-GBdriWaaEgmMU/edit?usp=sharing",
+        "designPage": "https://docs.google.com/document/d/1xabxcONbB3jQEQR4l8CneXkNvV7ipRZAPVBNGr_HvSo/edit?usp=sharing",
+        "engineeringPage": "https://docs.google.com/document/d/1xabxcONbB3jQEQR4l8CneXkNvV7ipRZAPVBNGr_HvSo/edit?usp=sharing"
+      }
 }
