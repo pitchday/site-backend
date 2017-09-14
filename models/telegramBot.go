@@ -207,9 +207,6 @@ func handleTelegramQuery(update tgbotapi.Update) {
 		}
 		markup = tgbotapi.NewInlineKeyboardMarkup(buttons)
 	}
-
-	Logger.Println("GOT MESSAGE FROM:", update.CallbackQuery.From.ID, "IN CHAT", update.CallbackQuery.Message.Chat.ID, "MessageId is", update.CallbackQuery.Message.MessageID, "DATA IS", update.CallbackQuery.Data)
-
 	updateMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, msg)
 	updateKeyboard(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, markup)
 	return
