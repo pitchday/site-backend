@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/pitchday/site-backend/config"
-	"github.com/satori/go.uuid"
 )
 
 func TelegramHandler(update tgbotapi.Update, botId string) {
@@ -119,7 +118,7 @@ func handleTelegramCommand(update tgbotapi.Update) (err error) {
 		if contributor.PrivateChat == 0 {
 			contributor.PrivateChat = update.Message.Chat.ID
 			if len(contributor.ReferralCode) < 1 {
-				contributor.ReferralCode = uuid.NewV4().String()
+				contributor.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferalTokenLength, true)
 			}
 
 			contributor.Update()
@@ -160,8 +159,8 @@ func handleTelegramQuery(update tgbotapi.Update) {
 		Logger.Println("Got an error while retrieving user.", err)
 	}
 
-	if len(user.ReferralCode) < 1 && user.Id > 0{
-		user.ReferralCode = uuid.NewV4().String()
+	if (len(user.ReferralCode) < 1 && user.Id > 0) || (len(user.ReferralCode) > config.Conf.ReferalTokenLength){
+		user.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferalTokenLength, true)
 		err = user.Update()
 		if err != nil {
 			Logger.Println("Failed to update user without referral code:", err)
@@ -172,6 +171,13 @@ func handleTelegramQuery(update tgbotapi.Update) {
 	msg := ""
 
 	switch update.CallbackQuery.Data {
+	case "buyTokens":
+		msg = config.Conf.BotMessages["buyTokensMessage"]
+		markup = tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonURL("Contact us", config.Conf.PRUrl)),
+			tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Back", "default")),
+		)
+
 	case "earnTokens":
 		msg = config.Conf.BotMessages["earnTokensMessage"]
 		markup = tgbotapi.NewInlineKeyboardMarkup(
@@ -204,6 +210,7 @@ func handleTelegramQuery(update tgbotapi.Update) {
 		msg = config.Conf.BotMessages["welcomeToCommunity"]
 		buttons := []tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["earnTokensLabel"], "earnTokens"),
+			tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["buyTokensLabel"], "buyTokens"),
 		}
 		markup = tgbotapi.NewInlineKeyboardMarkup(buttons)
 	}

@@ -18,10 +18,12 @@ type Config struct {
 	TelegramBotWebHook             string            `json:"telegramBotWebHook"`
 	AWSBucketName                  string            `json:"awsBucketName"`
 	TelegramBotToken               string            `json:"telegramBotToken"`
+	PRUrl                          string            `json:"pRUrl"`
 	CommunityTelegramGroupName     string            `json:"communityTelegramGroupName"`
 	CommunityTelegramGroupId       int64             `json:"communityTelegramGroupId"`
 	CommunityTelegramGroupLink     string            `json:"communityTelegramGroupLink"`
 	AnnouncementsTelegramChannelId int64             `json:"announcementsTelegramChannelId"`
+	ReferalTokenLength             int               `json:"referalTokenLength"`
 	BotMessages                    map[string]string `json:"botMessages"`
 }
 

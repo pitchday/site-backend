@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/satori/go.uuid"
 	"time"
+	"github.com/pitchday/site-backend/config"
 )
 
 type ContributorList []Contributor
@@ -45,7 +45,7 @@ func (c *Contributor) GetByReferralCode(referralCode string) (err error) {
 }
 
 func (c *Contributor) Create() (err error) {
-	c.ReferralCode = uuid.NewV4().String()
+	c.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferalTokenLength, true)
 	err = db.Create(&c).Error
 	return
 }
