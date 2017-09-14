@@ -112,6 +112,8 @@ func handleTelegramCommand(update tgbotapi.Update) (err error) {
 		if err != nil {
 			if isNotFoundDBError(err){
 				MakeContributorFromTelegram(user, false, update.Message.CommandArguments(), update.Message.Chat.ID)
+				markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonURL(config.Conf.BotMessages["joinCommunityLabel"], config.Conf.CommunityTelegramGroupLink)})
+				sendMessage(update.Message.Chat.ID, fmt.Sprintf(config.Conf.BotMessages["start"], config.Conf.CommunityTelegramGroupLink), markup)
 			}
 		}
 
@@ -124,12 +126,10 @@ func handleTelegramCommand(update tgbotapi.Update) (err error) {
 			contributor.Update()
 		}
 
-		markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonURL(config.Conf.BotMessages["joinCommunityLabel"], config.Conf.CommunityTelegramGroupLink)})
-		sendMessage(update.Message.Chat.ID, fmt.Sprintf(config.Conf.BotMessages["start"], config.Conf.CommunityTelegramGroupLink), markup)
-
-
-	case "menu":
-		markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["earnTokensLabel"], "earnTokens")})
+		markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["earnTokensLabel"], "earnTokens"),
+			tgbotapi.NewInlineKeyboardButtonData(config.Conf.BotMessages["buyTokensLabel"], "buyTokens"),
+		})
 		sendMessage(update.Message.Chat.ID, config.Conf.BotMessages["welcomeToCommunity"], markup)
 
 	//	TODO make this useful
