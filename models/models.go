@@ -2,10 +2,10 @@ package models
 
 import (
 	"fmt"
-	"github.com/pitchday/site-backend/config"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/pitchday/site-backend/config"
 	"log"
 	"os"
 )
@@ -27,15 +27,15 @@ func Setup() error {
 
 	db.AutoMigrate(&NewsletterSubscription{})
 	db.AutoMigrate(&Contributor{})
-	db.AutoMigrate(&UserIm{})
 	db.AutoMigrate(&Announcement{})
+	db.AutoMigrate(&ValueCache{})
 
 	telegramBot, err = tgbotapi.NewBotAPI(config.Conf.TelegramBotToken)
 	if err != nil {
 		Logger.Println(err)
 		return err
 	}
-	telegramBot.Debug = true
+	telegramBot.Debug = false
 	log.Printf("Authorized on account %s", telegramBot.Self.UserName)
 
 	_, err = telegramBot.SetWebhook(tgbotapi.NewWebhook(config.Conf.TelegramBotWebHook + config.Conf.TelegramBotToken))

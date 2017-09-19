@@ -1,14 +1,18 @@
 package api
 
 import (
-	"net/http"
 	"github.com/pitchday/site-backend/models"
+	"net/http"
+	"strconv"
 )
 
 func Get_Announcements(w http.ResponseWriter, r *http.Request) {
 	announcements := models.Announcements{}
 
-	err := announcements.Get()
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+
+	err := announcements.Get(limit, offset)
 	if err != nil {
 		resp := models.Response{
 			Success: false,

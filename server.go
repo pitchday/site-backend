@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/gorilla/handlers"
 	"github.com/pitchday/site-backend/config"
 	"github.com/pitchday/site-backend/controllers"
 	"github.com/pitchday/site-backend/models"
-	"github.com/gorilla/handlers"
 	"log"
 	"net/http"
 	"os"

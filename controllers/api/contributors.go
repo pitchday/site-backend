@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pitchday/site-backend/models"
 	"github.com/gorilla/mux"
+	"github.com/pitchday/site-backend/models"
 	"net/http"
 	"strconv"
 )
@@ -48,28 +48,8 @@ func Add_Contributor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.Validate()
+	err = c.Create()
 	if err != nil {
-		resp := models.Response{
-			Success: false,
-			Debug:   "Invalid email",
-			Message: "Unable to add contributor",
-		}
-		resp.Send(w, 400)
-		return
-	}
-
-	err, isDuplicated := c.Create()
-	if err != nil {
-		if isDuplicated {
-			resp := models.Response{
-				Success: false,
-				Debug:   "Email already registered",
-				Message: "Unable to add contributor",
-			}
-			resp.Send(w, 409)
-			return
-		}
 		resp := models.Response{
 			Success: false,
 			Debug:   "If this error persists please submit a bug report",

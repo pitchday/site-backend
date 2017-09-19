@@ -2,25 +2,28 @@ package models
 
 import (
 	"fmt"
-	"github.com/badoux/checkmail"
+	"github.com/go-sql-driver/mysql"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/pitchday/site-backend/config"
 	"time"
-	"github.com/satori/go.uuid"
 )
 
 type ContributorList []Contributor
 
 type Contributor struct {
-	Id          int64 `json:"-"`
-	Name        string
-	Description string
-	Email       string
-	Link        string
-	AvatarUrl   string
-	ReferralCode string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time `json:"-"`
+	Id           int64
+	Name         string
+	Description  string
+	Link         string
+	AvatarUrl    string
+	Username     string `json:"-"`
+	ServiceId    int    `json:"-" gorm:"unique"`
+	PrivateChat  int64  `json:"-"`
+	ReferralCode string `json:"-"gorm:"unique"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    mysql.NullTime `json:"-"`
+	ReferredBy   int64          `json:"-"`
 }
 
 func (c *Contributor) Get() (err error, isNotFound bool) {
@@ -29,19 +32,27 @@ func (c *Contributor) Get() (err error, isNotFound bool) {
 		isNotFound = true
 	}
 
-	//Hide personal information
-	c.Email = ""
-
 	return
 }
 
-func (c *Contributor) Create() (err error, isDuplicated bool) {
-	c.ReferralCode = uuid.NewV4().String()
+func (c *Contributor) GetByServiceId(serviceId string) (err error) {
+	err = db.Raw("SELECT * FROM contributors WHERE service_id = ?;", serviceId).Scan(&c).Error
+	return
+}
 
+func (c *Contributor) GetByReferralCode(referralCode string) (err error) {
+	err = db.Raw("SELECT * FROM contributors WHERE referral_code = ?;", referralCode).Scan(&c).Error
+	return
+}
+
+func (c *Contributor) Create() (err error) {
+	c.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferralTokenLength, true)
 	err = db.Create(&c).Error
-	if err != nil && isDuplicatedDBError(err) {
-		isDuplicated = true
-	}
+	return
+}
+
+func (c *Contributor) Update() (err error) {
+	err = db.Table("contributors").Save(&c).Error
 	return
 }
 
@@ -51,14 +62,7 @@ func (c *Contributor) Delete() (err error) {
 }
 
 func DeleteContributorUsingTelegramId(id int) (err error) {
-	err = db.Exec("UPDATE contributors SET deleted_at = NOW() WHERE id IN (SELECT contributor_id FROM user_ims WHERE service_id = ?);", id).Error
-	return
-}
-
-func (c *Contributor) Validate() (err error) {
-	if len(c.Email) > 1 {
-		err = checkmail.ValidateFormat(c.Email)
-	}
+	err = db.Exec("UPDATE contributors SET deleted_at = NOW() WHERE service_id = ?;", id).Error
 	return
 }
 
@@ -67,49 +71,44 @@ func (c *ContributorList) Get() (err error) {
 	return
 }
 
-func MakeContributorFromTelegram(u tgbotapi.User) bool {
+func (c *Contributor) MakeMember() (err error) {
+	c.DeletedAt.Valid = false
+	err = db.Exec("UPDATE contributors SET deleted_at = null WHERE service_id = ?;", c.ServiceId).Error
+	return
+}
+
+func MakeContributorFromTelegram(u tgbotapi.User, isMember bool, referredByCode string, privateChat int64) bool {
 	imageUrl, err := getUserAvatar(u)
 	if err != nil {
 		return false
 	}
 
-	tx := db.Begin()
+	referrer := Contributor{}
+	if len(referredByCode) > 1 {
+		err := referrer.GetByReferralCode(referredByCode)
+		if err != nil && !isNotFoundDBError(err) {
+			Logger.Println("There was an error registering user with referral code", referredByCode)
+		}
+	}
 
 	contributor := Contributor{
 		Name:        fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		AvatarUrl:   imageUrl,
-		ReferralCode: uuid.NewV4().String(),
+		Username:    u.UserName,
 		Description: "member",
+		ServiceId:   u.ID,
+		ReferredBy:  referrer.Id,
+		PrivateChat: privateChat,
 	}
 
-	err = tx.Create(&contributor).Error
+	if !isMember {
+		contributor.DeletedAt.Scan(time.Now())
+	}
+
+	err = contributor.Create()
 	if err != nil {
-		tx.Rollback()
 		return false
 	}
-
-	contributorIm := UserIm{
-		ContributorId: contributor.Id,
-		ServiceId:     fmt.Sprint(u.ID),
-		Provider:      "Telegram",
-	}
-	err = tx.Create(&contributorIm).Error
-	if err != nil {
-		if isDuplicatedDBError(err) {
-			tx.Rollback()
-
-			err = db.Exec("UPDATE contributors SET deleted_at = NULL WHERE id IN (SELECT contributor_id FROM user_ims WHERE service_id = ?);", u.ID).Error
-			if err != nil {
-				return false
-			}
-			return true
-		}
-
-		tx.Rollback()
-		return false
-	}
-
-	tx.Commit()
 	return true
 }
 
@@ -128,6 +127,7 @@ func getUserAvatar(user tgbotapi.User) (imageUrl string, err error) {
 	if len(avatars.Photos) < 1 {
 		return
 	}
+
 	avatarUrl, err := telegramBot.GetFileDirectURL(avatars.Photos[0][1].FileID)
 	if err != nil {
 		Logger.Println("Error getting user avatar url,", err)

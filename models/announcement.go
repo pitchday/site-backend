@@ -25,7 +25,14 @@ func (a *Announcement) Edit() (err error) {
 
 type Announcements []Announcement
 
-func (a *Announcements) Get() (err error) {
-	err = db.Table("announcements").Find(&a).Error
+func (a *Announcements) Get(limit, offset int) (err error) {
+	if limit == 0 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	err = db.Table("announcements").Order("created_at DESC").Limit(limit).Offset(offset).Find(&a).Error
 	return
 }
