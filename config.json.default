@@ -11,7 +11,10 @@
 	"communityTelegramGroupName": "PitchDay",
 	"communityTelegramGroupId": 0,
 	"communityTelegramGroupLink": "https://t.me/botTestingForPitch",
+	"loggingTelegramChannel": 0,
 	"announcementsTelegramChannelId": 0,
+	"walletAddress": "A wallet address",
+	"pRUrl": "https://t.me/gpellizzari",
     "botMessages": {
         "start": "Great!\n\nAt Pitchday we envision a highly collaborative and inclusive platform where individuals and organisations can collaborate and bring to life innovative projects in a democratic, transparent, boarder-less and equal way.\n\nReady to become a member? Join now: %s",
         "joinCommunityLabel": "Join now",

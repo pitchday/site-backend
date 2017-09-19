@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/pitchday/site-backend/config"
+	"time"
+	"strconv"
 )
 
 func TelegramHandler(update tgbotapi.Update, botId string) {
@@ -99,7 +101,15 @@ func telegramPrivateHandler(update tgbotapi.Update) {
 	switch {
 	case update.Message.IsCommand():
 		handleTelegramCommand(update)
+	default:
+		logEvent(update)
 	}
+}
+
+func logEvent(update tgbotapi.Update) {
+	msgTemplate := "User %s %s (%s) on %s said: %s"
+	msg := fmt.Sprintf(msgTemplate, update.Message.From.FirstName, update.Message.From.LastName, update.Message.From.UserName, telegramDateToUnixTime(update.Message.Date), update.Message.Text)
+	sendMessage(config.Conf.LoggingTelegramChannel, msg, nil)
 }
 
 func handleTelegramCommand(update tgbotapi.Update) (err error) {
@@ -114,15 +124,16 @@ func handleTelegramCommand(update tgbotapi.Update) (err error) {
 				MakeContributorFromTelegram(user, false, update.Message.CommandArguments(), update.Message.Chat.ID)
 				markup := tgbotapi.NewInlineKeyboardMarkup([]tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonURL(config.Conf.BotMessages["joinCommunityLabel"], config.Conf.CommunityTelegramGroupLink)})
 				sendMessage(update.Message.Chat.ID, fmt.Sprintf(config.Conf.BotMessages["start"], config.Conf.CommunityTelegramGroupLink), markup)
+				err = nil
+				return
 			}
 		}
 
 		if contributor.PrivateChat == 0 {
 			contributor.PrivateChat = update.Message.Chat.ID
 			if len(contributor.ReferralCode) < 1 {
-				contributor.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferalTokenLength, true)
+				contributor.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferralTokenLength, true)
 			}
-
 			contributor.Update()
 		}
 
@@ -159,8 +170,8 @@ func handleTelegramQuery(update tgbotapi.Update) {
 		Logger.Println("Got an error while retrieving user.", err)
 	}
 
-	if (len(user.ReferralCode) < 1 && user.Id > 0) || (len(user.ReferralCode) > config.Conf.ReferalTokenLength){
-		user.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferalTokenLength, true)
+	if (len(user.ReferralCode) < 1 && user.Id > 0) || (len(user.ReferralCode) > config.Conf.ReferralTokenLength){
+		user.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferralTokenLength, true)
 		err = user.Update()
 		if err != nil {
 			Logger.Println("Failed to update user without referral code:", err)
@@ -269,13 +280,34 @@ func telegramSuperGroupHandler(update tgbotapi.Update) {
 }
 
 func GetMemberCountInChannel() (count int, err error) {
-	groupData := tgbotapi.ChatConfig{
-		ChatID:             config.Conf.CommunityTelegramGroupId,
-		SuperGroupUsername: "",
+	vc := ValueCache{
+		Key: "telegramGroupCount",
 	}
 
-	count, err = telegramBot.GetChatMembersCount(groupData)
-	count = count - 1
+	vc.GetByKey()
+	if vc.ID == 0 || vc.ExpiresAt.Before(time.Now()) {
+		Logger.Println("Count for telegram group has expired... Updating count")
+
+		groupData := tgbotapi.ChatConfig{
+			ChatID:             config.Conf.CommunityTelegramGroupId,
+			SuperGroupUsername: "",
+		}
+
+		count, err = telegramBot.GetChatMembersCount(groupData)
+		if err != nil {
+			Logger.Println("Failed retrieving updated user count with error:", err)
+		}
+
+		vc.ExpiresAt = time.Now().Add(3 * time.Hour)
+		vc.Value = fmt.Sprint(count - 1)
+
+		err = vc.Update()
+		if err != nil {
+			return
+		}
+	}
+
+	count, _ = strconv.Atoi(vc.Value)
 	return
 }
 
@@ -312,5 +344,10 @@ func updateKeyboard(chatId int64, messageId int, markup tgbotapi.InlineKeyboardM
 	if err != nil {
 		Logger.Println("Got error while sending message", err)
 	}
+	return
+}
+
+func telegramDateToUnixTime(value int) (dateString string) {
+	dateString = time.Unix(int64(value), 0).String()
 	return
 }

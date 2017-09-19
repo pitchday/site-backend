@@ -28,6 +28,7 @@ func Setup() error {
 	db.AutoMigrate(&NewsletterSubscription{})
 	db.AutoMigrate(&Contributor{})
 	db.AutoMigrate(&Announcement{})
+	db.AutoMigrate(&ValueCache{})
 
 	telegramBot, err = tgbotapi.NewBotAPI(config.Conf.TelegramBotToken)
 	if err != nil {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"time"
 	"github.com/pitchday/site-backend/config"
+	"time"
 )
 
 type ContributorList []Contributor
@@ -16,9 +16,10 @@ type Contributor struct {
 	Description  string
 	Link         string
 	AvatarUrl    string
-	ServiceId    int `gorm:"unique"`
-	PrivateChat  int64
-	ReferralCode string `gorm:"unique"`
+	Username     string `json:"-"`
+	ServiceId    int    `json:"-" gorm:"unique"`
+	PrivateChat  int64  `json:"-"`
+	ReferralCode string `json:"-"gorm:"unique"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    mysql.NullTime `json:"-"`
@@ -45,7 +46,7 @@ func (c *Contributor) GetByReferralCode(referralCode string) (err error) {
 }
 
 func (c *Contributor) Create() (err error) {
-	c.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferalTokenLength, true)
+	c.ReferralCode = RandStringBytesMaskImprSrc(config.Conf.ReferralTokenLength, true)
 	err = db.Create(&c).Error
 	return
 }
@@ -93,6 +94,7 @@ func MakeContributorFromTelegram(u tgbotapi.User, isMember bool, referredByCode 
 	contributor := Contributor{
 		Name:        fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		AvatarUrl:   imageUrl,
+		Username:    u.UserName,
 		Description: "member",
 		ServiceId:   u.ID,
 		ReferredBy:  referrer.Id,

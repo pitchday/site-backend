@@ -28,6 +28,9 @@ func CreateRouter() http.Handler {
 
 	apiRouter.HandleFunc("/newsletter", Use(api.Newsletter_Subscribe)).Methods("POST")
 
+	apiRouter.HandleFunc("/wallets", Use(api.Get_Wallet_Balance)).Methods("GET")
+
+
 	// Setup CSRF Protection
 	csrfHandler := nosurf.New(router)
 
@@ -37,6 +40,7 @@ func CreateRouter() http.Handler {
 	csrfHandler.ExemptGlob("/*/newsletter")
 	csrfHandler.ExemptGlob("/*/contributors")
 	csrfHandler.ExemptGlob("/*/contributors/*")
+	csrfHandler.ExemptGlob("/*/wallets")
 
 	return Use(csrfHandler.ServeHTTP, middleware.GetContext)
 

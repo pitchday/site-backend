@@ -23,7 +23,9 @@ type Config struct {
 	CommunityTelegramGroupId       int64             `json:"communityTelegramGroupId"`
 	CommunityTelegramGroupLink     string            `json:"communityTelegramGroupLink"`
 	AnnouncementsTelegramChannelId int64             `json:"announcementsTelegramChannelId"`
-	ReferalTokenLength             int               `json:"referalTokenLength"`
+	LoggingTelegramChannel         int64             `json:"loggingTelegramChannel"`
+	ReferralTokenLength            int               `json:"referalTokenLength"`
+	WalletAddress                  string            `json:"walletAddress"`
 	BotMessages                    map[string]string `json:"botMessages"`
 }
 
